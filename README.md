@@ -97,12 +97,28 @@ cd "D:\SLIIT\Y4S2\CTSE\Assignment 2\MAS"
 python -m pip install -r requirements.txt
 ```
 
+### Interpreter-Safe Mode (Recommended)
+
+To avoid `ModuleNotFoundError` due to wrong Python interpreter, use this variable in all commands:
+
+```powershell
+$py = "d:/SLIIT/Y4S2/CTSE/Assignment 2/MAS/.venv/Scripts/python.exe"
+```
+
+Then run commands as `& $py ...` instead of plain `python ...`.
+
 ## Run the Project
 
 Recommended deterministic mode for demo:
 
 ```powershell
 $env:MAS_OFFLINE_MODE="1"; python -m src.mas.main --request "Compare prices for coconut" --model llama3:8b
+```
+
+Interpreter-safe equivalent:
+
+```powershell
+$env:MAS_OFFLINE_MODE="1"; & $py -m src.mas.main --request "Compare prices for coconut" --model llama3:8b
 ```
 
 Typical output:
@@ -130,10 +146,22 @@ Run all tests:
 python -m pytest -q
 ```
 
+Interpreter-safe equivalent:
+
+```powershell
+& $py -m pytest -q
+```
+
 Run multi-case evaluation:
 
 ```powershell
 python evaluation.py
+```
+
+Interpreter-safe equivalent:
+
+```powershell
+& $py evaluation.py
 ```
 
 ## One-by-One Viva Commands (Per Member)
@@ -143,6 +171,46 @@ Set once:
 ```powershell
 $env:MAS_OFFLINE_MODE="1"
 ```
+
+### Recommended: Step-by-Step Input Mode (No long one-liners)
+
+Use this interactive runner:
+
+```powershell
+python scripts/viva_step_runner.py
+```
+
+Interpreter-safe equivalent:
+
+```powershell
+& $py scripts/viva_step_runner.py
+```
+
+It will ask inputs one by one:
+1. Member selection
+2. Trace ID
+3. Product/Request details
+4. Sample prices (for member 3 if needed)
+
+You can also run a member directly:
+
+```powershell
+python scripts/viva_step_runner.py --member 1
+python scripts/viva_step_runner.py --member 2
+python scripts/viva_step_runner.py --member 3
+python scripts/viva_step_runner.py --member 4
+```
+
+Interpreter-safe equivalents:
+
+```powershell
+& $py scripts/viva_step_runner.py --member 1
+& $py scripts/viva_step_runner.py --member 2
+& $py scripts/viva_step_runner.py --member 3
+& $py scripts/viva_step_runner.py --member 4
+```
+
+### Alternative: Direct one-line commands
 
 Member 1 (Coordinator):
 
@@ -168,12 +236,24 @@ Member 4 (Full pipeline):
 python -m src.mas.main --request "Compare prices for coconut" --model llama3:8b
 ```
 
+Interpreter-safe equivalent:
+
+```powershell
+& $py -m src.mas.main --request "Compare prices for coconut" --model llama3:8b
+```
+
 ## Convert Any Markdown Report to PDF
 
 Use the utility script:
 
 ```powershell
 python scripts/export_report_pdf.py --input ".\reports\price_report_<trace_id>.md" --output ".\reports\price_report_<trace_id>.pdf"
+```
+
+Interpreter-safe equivalent:
+
+```powershell
+& $py scripts/export_report_pdf.py --input ".\reports\price_report_<trace_id>.md" --output ".\reports\price_report_<trace_id>.pdf"
 ```
 
 ## Observability Coverage
@@ -192,6 +272,12 @@ If you get `ModuleNotFoundError: No module named 'bs4'`:
 
 ```powershell
 python -m pip install -r requirements.txt
+```
+
+If the error still appears, you are likely using the wrong interpreter. Use:
+
+```powershell
+& $py -m pip install -r requirements.txt
 ```
 
 If PDF opens as unreadable text in editor:

@@ -16,3 +16,9 @@ class Settings:
 
 
 settings = Settings()
+
+
+def is_offline_mode() -> bool:
+    """Read offline mode dynamically from environment at runtime."""
+
+    return os.getenv("MAS_OFFLINE_MODE", "0") == "1"

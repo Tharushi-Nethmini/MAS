@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import uuid
 
 from src.mas.graph import build_graph
@@ -14,6 +15,7 @@ def evaluate_single_case(request: str) -> dict[str, bool]:
     with LLM-as-a-Judge later if required.
     """
 
+    os.environ["MAS_OFFLINE_MODE"] = "1"
     graph = build_graph()
     state: MASState = {
         "trace_id": f"eval_{uuid.uuid4().hex[:8]}",

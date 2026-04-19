@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import uuid
 
-from src.mas.config import settings
+from src.mas.config import is_offline_mode, settings
 from src.mas.graph import build_graph
 from src.mas.observability.logger import log_event, write_run_summary
 from src.mas.state import MASState
@@ -15,6 +15,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run local CTSE MAS")
     parser.add_argument("--request", required=True, help="User request for planning")
     parser.add_argument("--model", default=settings.default_model, help="Ollama model name")
+    parser.add_argument(
+        "--urls",
+        default="",
+        help="Comma-separated source URLs for live scraping in online mode.",
+    )
     return parser.parse_args()
 
 
@@ -23,12 +28,14 @@ def main() -> None:
 
     args = parse_args()
     trace_id = uuid.uuid4().hex[:10]
+    source_urls = [item.strip() for item in args.urls.split(",") if item.strip()]
 
     initial_state: MASState = {
         "trace_id": trace_id,
         "model": args.model,
         "user_request": args.request,
-        "meta": {"offline_mode": settings.offline_mode},
+        "source_urls": source_urls,
+        "meta": {"offline_mode": is_offline_mode()},
     }
 
     log_event(trace_id, "run_start", {"request": args.request, "model": args.model})

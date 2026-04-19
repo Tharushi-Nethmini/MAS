@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from src.mas.config import settings
+from src.mas.config import is_offline_mode, settings
 from src.mas.agents.prompts import COORDINATOR_SYSTEM_PROMPT
 from src.mas.llm import ask_ollama
 from src.mas.observability.logger import log_event
@@ -37,9 +37,9 @@ def coordinator_agent(state: MASState) -> MASState:
 
     product_name = _extract_product_name(request)
     normalized_product_query = re.sub(r"\s+", " ", product_name).strip().lower()
-    source_urls: list[str] = []
+    source_urls: list[str] = state.get("source_urls", [])
 
-    if not settings.offline_mode:
+    if not is_offline_mode():
         try:
             refinement = ask_ollama(
                 base_url=settings.ollama_base_url,
@@ -49,8 +49,14 @@ def coordinator_agent(state: MASState) -> MASState:
             )
             normalized_product_query = refinement[:120].strip().lower() or normalized_product_query
         except Exception as exc:  # pragma: no cover
-            normalized_product_query = (
-                f"{normalized_product_query} (llm-fallback:{str(exc)[:40]})".strip()
+            log_event(
+                trace_id,
+                "model_error",
+                {
+                    "agent": "CoordinatorAgent",
+                    "message": str(exc)[:200],
+                    "action": "using extracted product query fallback",
+                },
             )
 
     log_event(
