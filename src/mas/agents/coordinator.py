@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from src.mas.config import settings
+from src.mas.agents.prompts import COORDINATOR_SYSTEM_PROMPT
 from src.mas.llm import ask_ollama
 from src.mas.observability.logger import log_event
 from src.mas.state import MASState
@@ -43,10 +44,7 @@ def coordinator_agent(state: MASState) -> MASState:
             refinement = ask_ollama(
                 base_url=settings.ollama_base_url,
                 model=state.get("model", settings.default_model),
-                system_prompt=(
-                    "You are a strict e-commerce coordinator. "
-                    "Normalize product search query in one concise line."
-                ),
+                system_prompt=COORDINATOR_SYSTEM_PROMPT,
                 user_prompt=request,
             )
             normalized_product_query = refinement[:120].strip().lower() or normalized_product_query
@@ -60,6 +58,7 @@ def coordinator_agent(state: MASState) -> MASState:
         "agent_output",
         {
             "agent": "CoordinatorAgent",
+            "system_prompt": COORDINATOR_SYSTEM_PROMPT,
             "product_name": product_name,
             "normalized_product_query": normalized_product_query,
         },

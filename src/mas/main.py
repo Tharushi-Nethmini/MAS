@@ -45,6 +45,7 @@ def main() -> None:
             "best_store": result.get("best_store", ""),
             "best_price": result.get("best_price", ""),
             "saved_report_path": result.get("saved_report_path", ""),
+            "saved_report_pdf_path": result.get("saved_report_pdf_path", ""),
         },
     )
 
@@ -56,13 +57,15 @@ def main() -> None:
             "product_name": result.get("product_name", ""),
             "best_store": result.get("best_store", ""),
             "best_price": result.get("best_price", ""),
+            "saved_report_pdf_path": result.get("saved_report_pdf_path", ""),
             "summary_path": summary_path,
         },
     )
 
     print("=== MAS Execution Complete ===")
     print(f"Trace ID: {trace_id}")
-    print(f"Report: {result.get('saved_report_path', 'not created')}")
+    print(f"Report (MD): {result.get('saved_report_path', 'not created')}")
+    print(f"Report (PDF): {result.get('saved_report_pdf_path', 'not created')}")
     print(f"Run Summary: {summary_path}")
 
 

@@ -3,10 +3,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+from src.mas.agents.prompts import REPORT_GENERATOR_SYSTEM_PROMPT
 from src.mas.config import settings
 from src.mas.observability.logger import log_event
 from src.mas.state import MASState
 from src.mas.tools.file_tools import save_markdown_file
+from src.mas.tools.pdf_tools import save_report_pdf
 from src.mas.tools.shell_tools import run_safe_shell
 
 
@@ -78,8 +80,15 @@ def risk_and_report_agent(state: MASState) -> MASState:
     )
 
     reports_dir = Path(settings.reports_dir)
-    path = reports_dir / f"price_report_{trace_id}.md"
-    saved_path = save_markdown_file(str(path), report)
+    md_path = reports_dir / f"price_report_{trace_id}.md"
+    pdf_path = reports_dir / f"price_report_{trace_id}.pdf"
+
+    saved_path = save_markdown_file(str(md_path), report)
+    saved_pdf_path = save_report_pdf(
+        str(pdf_path),
+        "AI-Based Smart Price Comparison Report",
+        report,
+    )
 
     log_event(
         trace_id,
@@ -87,8 +96,19 @@ def risk_and_report_agent(state: MASState) -> MASState:
         {
             "agent": "ReportGeneratorAgent",
             "tool": "save_markdown_file",
-            "input": {"path": str(path)},
+            "input": {"path": str(md_path)},
             "output": saved_path,
+        },
+    )
+
+    log_event(
+        trace_id,
+        "tool_call",
+        {
+            "agent": "ReportGeneratorAgent",
+            "tool": "save_report_pdf",
+            "input": {"path": str(pdf_path)},
+            "output": saved_pdf_path,
         },
     )
 
@@ -97,8 +117,10 @@ def risk_and_report_agent(state: MASState) -> MASState:
         "agent_output",
         {
             "agent": "ReportGeneratorAgent",
+            "system_prompt": REPORT_GENERATOR_SYSTEM_PROMPT,
             "report_notes": report_notes,
             "saved_report_path": saved_path,
+            "saved_report_pdf_path": saved_pdf_path,
         },
     )
 
@@ -107,4 +129,5 @@ def risk_and_report_agent(state: MASState) -> MASState:
         "risk_notes": report_notes,
         "final_report": report,
         "saved_report_path": saved_path,
+        "saved_report_pdf_path": saved_pdf_path,
     }

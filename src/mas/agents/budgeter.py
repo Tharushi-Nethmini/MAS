@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.mas.agents.prompts import PRICE_ANALYZER_SYSTEM_PROMPT
 from src.mas.observability.logger import log_event
 from src.mas.state import MASState
 from src.mas.tools.price_tools import analyze_prices
@@ -36,6 +37,7 @@ def budget_agent(state: MASState) -> MASState:
         "agent_output",
         {
             "agent": "PriceAnalyzerAgent",
+            "system_prompt": PRICE_ANALYZER_SYSTEM_PROMPT,
             "budget_plan": budget_plan,
             "best_store": analysis["best_store"],
             "best_price": analysis["best_price"],

@@ -22,4 +22,5 @@ class MASState(TypedDict, total=False):
     report_notes: str
     final_report: str
     saved_report_path: str
+    saved_report_pdf_path: str
     meta: dict[str, Any]

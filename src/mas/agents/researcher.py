@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.mas.agents.prompts import WEB_SCRAPER_SYSTEM_PROMPT
 from src.mas.config import settings
 from src.mas.observability.logger import log_event
 from src.mas.state import MASState
@@ -50,6 +51,7 @@ def research_agent(state: MASState) -> MASState:
         "agent_output",
         {
             "agent": "WebScraperAgent",
+            "system_prompt": WEB_SCRAPER_SYSTEM_PROMPT,
             "scraped_item_count": len(scraped_items),
             "research_notes": research_notes,
         },

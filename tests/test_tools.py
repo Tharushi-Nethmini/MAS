@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from src.mas.tools.file_tools import load_json_file, save_markdown_file
+from src.mas.tools.pdf_tools import save_report_pdf
 from src.mas.tools.price_tools import analyze_prices
 from src.mas.tools.public_api import scrape_prices
 from src.mas.tools.shell_tools import run_safe_shell
@@ -33,6 +34,7 @@ def test_scrape_prices_offline_returns_items() -> None:
     items = scrape_prices("coconut", offline_mode=True)
     assert len(items) >= 3
     assert all("store" in item and "price" in item for item in items)
+    assert all(float(item["price"]) >= 100.0 for item in items)
 
 
 def test_analyze_prices_returns_best_offer() -> None:
@@ -45,3 +47,9 @@ def test_analyze_prices_returns_best_offer() -> None:
     )
     assert summary["best_store"] == "StoreB"
     assert summary["best_price"] == 150.0
+
+
+def test_save_report_pdf_creates_output(tmp_path: Path) -> None:
+    output = tmp_path / "runtime_report.pdf"
+    saved = save_report_pdf(str(output), "Runtime Report", "Hello PDF")
+    assert Path(saved).exists()

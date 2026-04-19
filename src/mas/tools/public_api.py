@@ -56,8 +56,9 @@ def extract_prices_from_html(store_name: str, html: str, product_name: str) -> l
     if product_name.lower() not in page_text.lower():
         return []
 
-    pattern = re.compile(r"(?:LKR|Rs\.?\s?|\b)(\d+(?:\.\d{1,2})?)", re.IGNORECASE)
-    matches = pattern.findall(page_text)
+    prefix_pattern = re.compile(r"(?:LKR|Rs\.?)\s*(\d+(?:\.\d{1,2})?)", re.IGNORECASE)
+    suffix_pattern = re.compile(r"(\d+(?:\.\d{1,2})?)\s*LKR", re.IGNORECASE)
+    matches = prefix_pattern.findall(page_text) + suffix_pattern.findall(page_text)
 
     items: list[dict[str, Any]] = []
     for raw in matches:
