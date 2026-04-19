@@ -17,7 +17,7 @@ SESSION_FILE = PROJECT_ROOT / "logs" / "viva_session.json"
 from src.mas.agents.budgeter import budget_agent
 from src.mas.agents.coordinator import coordinator_agent
 from src.mas.agents.researcher import research_agent
-from src.mas.config import is_offline_mode, settings
+from src.mas.config import is_offline_mode
 from src.mas.graph import build_graph
 from src.mas.observability.logger import log_event, write_run_summary
 from src.mas.state import MASState
@@ -84,28 +84,8 @@ def _save_last_source_urls(urls: list[str]) -> None:
 
 
 def _select_source_urls_for_demo() -> tuple[list[str], bool]:
-    """Return (source_urls, force_offline) with a simpler interactive flow."""
-
-    last_urls = _get_last_source_urls()
-    default_mode = "last" if last_urls else "offline"
-    mode = _input_default("Source mode (offline/live/last)", default_mode).lower()
-
-    if mode in {"offline", "o"}:
-        return [], True
-
-    if mode in {"last", "l"}:
-        if last_urls:
-            print(f"Using last saved URLs: {', '.join(last_urls)}")
-            return last_urls, False
-        print("No saved URLs found. Switching to live mode.")
-
-    while True:
-        raw = input("Enter live source URLs/domains (comma separated): ").strip()
-        source_urls = [url.strip() for url in raw.split(",") if url.strip()] if raw else []
-        if source_urls:
-            _save_last_source_urls(source_urls)
-            return source_urls, False
-        print("Please enter at least one URL/domain for live mode, or choose offline mode.")
+    """Return offline-only source mode for stable viva demos."""
+    return [], True
 
 
 def run_member_1(trace_id: str) -> None:
@@ -124,8 +104,9 @@ def run_member_1(trace_id: str) -> None:
 
 
 def run_member_2(trace_id: str) -> None:
+    model = "llama3:8b"
     print(f"Trace ID (shared auto): {trace_id}")
-    model = _input_default("Model", settings.default_model)
+    print(f"Model (auto): {model}")
     product_name = _input_default("Product name", "coconut")
     source_urls, force_offline = _select_source_urls_for_demo()
 

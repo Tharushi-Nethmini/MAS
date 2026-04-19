@@ -22,9 +22,9 @@ def _deterministic_fallback_profiles(product_name: str) -> list[tuple[str, float
     base = 100.0 + float(seed % 2000)
 
     return [
-        ("MarketplaceA", round(base, 2), "Standard"),
-        ("MarketplaceB", round(base * 1.06, 2), "Premium"),
-        ("MarketplaceC", round(base * 0.94, 2), "Budget"),
+        ("Keells", round(base, 2), "Standard"),
+        ("Glomark", round(base * 1.06, 2), "Premium"),
+        ("Arpico", round(base * 0.94, 2), "Budget"),
     ]
 
 
