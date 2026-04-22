@@ -223,7 +223,7 @@ The demo (4 to 5 minutes) should clearly show:
 This project demonstrates that a locally hosted Multi-Agent System can automate a real-world workflow efficiently and transparently. By combining specialized agents, custom tools, structured state management, and robust evaluation, the system meets assignment requirements while remaining scalable for future enhancements.
 
 ## 11. GitHub Repository
-Repository link: INSERT_GITHUB_OR_GITLAB_URL_HERE
+Repository link: https://github.com/Tharushi-Nethmini/MAS
 
 ## 12. Future Improvements
 - Add additional data sources for broader market coverage.

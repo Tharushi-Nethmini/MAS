@@ -343,31 +343,31 @@ Each student must provide concrete evidence with commit/PR links.
 - Tool implemented: Query normalization helper.
 - Tests contributed: request extraction and fallback behavior.
 - Challenges faced: ambiguous product requests.
-- Evidence links: INSERT_COMMIT_LINKS_AND_PR_ID.
+- Evidence links: See [docs/contributions/student_1.md](../docs/contributions/student_1.md); representative commits: `ca43650`, `c940a18`.
 
 ### Student 2
 - Agent developed: Web Scraper Agent.
 - Tool implemented: scrape_prices and HTML extraction routines.
 - Tests contributed: offline extraction and malformed HTML handling.
 - Challenges faced: inconsistent source structures.
-- Evidence links: INSERT_COMMIT_LINKS_AND_PR_ID.
+- Evidence links: See [docs/contributions/student_2.md](../docs/contributions/student_2.md); representative commits: `87f7a84`, `ca43650`.
 
 ### Student 3
 - Agent developed: Price Analyzer Agent.
 - Tool implemented: analyze_prices.
 - Tests contributed: min/max/average correctness and range consistency.
 - Challenges faced: invalid numeric values in scraped records.
-- Evidence links: INSERT_COMMIT_LINKS_AND_PR_ID.
+- Evidence links: See [docs/contributions/student_3.md](../docs/contributions/student_3.md); representative commits: `c940a18`, `ca43650`.
 
 ### Student 4
 - Agent developed: Report Generator Agent.
 - Tool implemented: report persistence and summary generation.
 - Tests contributed: output file generation and end-to-end checks.
 - Challenges faced: preserving complete context in final output.
-- Evidence links: INSERT_COMMIT_LINKS_AND_PR_ID.
+- Evidence links: See [docs/contributions/student_4.md](../docs/contributions/student_4.md); representative commits: `22a8d59`, `1ea4ff1`.
 
 ## 9. GitHub Repository Link
-Repository URL: INSERT_GITHUB_OR_GITLAB_REPO_URL_HERE
+Repository URL: https://github.com/Tharushi-Nethmini/MAS
 
 ## 10. Conclusion
 This project demonstrates how a locally hosted Multi-Agent System can automate a complex real-world task through role-specialized agents, explicit tool integration, typed shared state, and robust observability. The implementation satisfies assignment requirements for orchestration, tool usage, state management, and evaluation while remaining practical for future extension.
