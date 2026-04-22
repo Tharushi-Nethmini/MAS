@@ -3,6 +3,17 @@
 ## Module
 SE4010 - CTSE Assignment 2 (Machine Learning)
 
+## Group Information
+- Group: Y4S2-SE-WE
+- Group ID: 56
+
+| Student ID | Name | Email |
+|---|---|---|
+| IT22125248 | Annesiyani Srikanthan | it22125248@my.sliit.lk |
+| IT22099518 | Hemapriya H. A . N. S | it22099518@my.sliit.lk |
+| IT22167378 | H.I.G.Amith Hasintha | it22167378@my.sliit.lk |
+| IT22083296 | E.K.K.Tharushi Nethmini Edirisinghe | it22083296@my.sliit.lk |
+
 ## Team
 Team Size: 4 Students
 
@@ -146,8 +157,45 @@ The interaction strategy is sequential delegation through shared state:
 
 This pattern minimizes role overlap and keeps each component independently testable.
 
+### 3.6 What the 4 Agents Actually Do During a Run
+For an input such as "Compare prices for coconut", the runtime behavior is:
+
+1. Coordinator Agent
+- Reads user_request from state.
+- Extracts product_name with regex and fallback logic.
+- Normalizes query into normalized_product_query for downstream tools.
+- Preserves source_urls and passes handoff state.
+
+2. Web Scraper Agent
+- Reads normalized_product_query and source_urls.
+- Calls scraping tool to collect product entries from offline profile or web sources.
+- Filters malformed/non-positive prices and returns normalized records in scraped_items.
+- Writes research_notes summary of collection outcome.
+
+3. Price Analyzer Agent
+- Reads scraped_items.
+- Validates numeric price values and removes invalid entries.
+- Computes best_store, best_price, min_price, max_price, average_price.
+- Produces analysis_summary for user-facing interpretation.
+
+4. Report Generator Agent
+- Reads all finalized fields from shared state.
+- Generates final_report markdown content.
+- Saves markdown and PDF artifacts locally.
+- Logs tool calls and returns saved_report_path and saved_report_pdf_path.
+
 ## 4. Custom Tools and Integration
 The system uses custom Python tools to ensure agents interact with the environment rather than relying on model-only responses.
+
+### 4.0 Integration Flow Across Tools
+Tool calls are integrated as a strict chain aligned with agent responsibilities:
+
+1. Coordinator Agent uses local LLM helper for optional query refinement.
+2. Web Scraper Agent invokes scraping/parsing utilities to build scraped_items.
+3. Price Analyzer Agent invokes numerical analysis utility to compute statistics.
+4. Report Generator Agent invokes file, PDF, and safe shell utilities for final artifacts.
+
+This explicit mapping ensures each agent uses at least one concrete tool and avoids a purely prompt-only implementation.
 
 ### 4.1 Web Scraping Tool
 File: src/mas/tools/public_api.py
@@ -162,11 +210,15 @@ Engineering decisions:
 - Supports deterministic offline catalog generation for reproducible demos.
 - Uses parser + regex extraction with validation.
 - Supports Shopify endpoint extraction and optional snapshot mode.
+- Returns a normalized schema consumed directly by the analyzer stage.
 
 Example usage:
 ```python
 items = scrape_prices(product_name="coconut", source_urls=[], offline_mode=True)
 ```
+
+Integration point:
+- Called by Web Scraper Agent to produce shared state field scraped_items.
 
 ### 4.2 Price Analysis Tool
 File: src/mas/tools/price_tools.py
@@ -180,6 +232,7 @@ Engineering decisions:
 - Filters invalid records safely.
 - Calculates best, min, max, average, sample size.
 - Raises ValueError when no valid prices are available.
+- Produces deterministic numeric outputs for report generation.
 
 Example usage:
 ```python
@@ -188,6 +241,9 @@ summary = analyze_prices([
     {"store": "B", "price": 110.0},
 ])
 ```
+
+Integration point:
+- Called by Price Analyzer Agent to fill best_price, best_store, min_price, max_price, and average_price.
 
 ### 4.3 File Interaction Tool
 File: src/mas/tools/file_tools.py
@@ -202,13 +258,38 @@ Engineering decisions:
 - Parent directories are created automatically.
 - JSON loader validates root object type.
 - Paths are returned in resolved form for traceability.
+- Avoids path-related runtime failures during report persistence.
 
 Example usage:
 ```python
 saved_path = save_markdown_file("reports/example.md", "# Report")
 ```
 
-### 4.4 Secure Shell Tool
+Integration point:
+- Called by Report Generator Agent to persist markdown report output.
+
+### 4.4 PDF Generation Tool
+File: src/mas/tools/pdf_tools.py
+
+Representative signature:
+```python
+def save_report_pdf(path: str, title: str, body: str) -> str
+```
+
+Engineering decisions:
+- Uses ReportLab to generate an A4-compatible report file.
+- Keeps markdown and PDF contents aligned from the same report body.
+- Returns saved path for downstream verification and testing.
+
+Example usage:
+```python
+pdf_path = save_report_pdf("reports/example.pdf", "Price Report", report_text)
+```
+
+Integration point:
+- Called by Report Generator Agent to produce submission-ready PDF output.
+
+### 4.5 Secure Shell Tool
 File: src/mas/tools/shell_tools.py
 
 Representative signature:
@@ -220,11 +301,15 @@ Engineering decisions:
 - Strict allowlist of read-only commands.
 - Empty or non-allowlisted commands are blocked.
 - Runtime failures raise explicit RuntimeError.
+- Reduces command-injection risk while preserving environment observability.
 
 Example usage:
 ```python
 output = run_safe_shell("Get-Date")
 ```
+
+Integration point:
+- Called by Report Generator Agent for runtime snapshot metadata included in report notes.
 
 ## 5. State Management
 Global context is preserved through a typed dictionary structure (MASState).
@@ -338,28 +423,28 @@ Known failure risks and mitigations:
 ## 8. Individual Contributions (Proof Section)
 Each student must provide concrete evidence with commit/PR links.
 
-### Student 1
+### IT22125248 - Annesiyani Srikanthan
 - Agent developed: Coordinator Agent.
 - Tool implemented: Query normalization helper.
 - Tests contributed: request extraction and fallback behavior.
 - Challenges faced: ambiguous product requests.
 - Evidence links: See [docs/contributions/student_1.md](../docs/contributions/student_1.md); representative commits: `ca43650`, `c940a18`.
 
-### Student 2
+### IT22099518 - Hemapriya H. A . N. S
 - Agent developed: Web Scraper Agent.
 - Tool implemented: scrape_prices and HTML extraction routines.
 - Tests contributed: offline extraction and malformed HTML handling.
 - Challenges faced: inconsistent source structures.
 - Evidence links: See [docs/contributions/student_2.md](../docs/contributions/student_2.md); representative commits: `87f7a84`, `ca43650`.
 
-### Student 3
+### IT22167378 - H.I.G.Amith Hasintha
 - Agent developed: Price Analyzer Agent.
 - Tool implemented: analyze_prices.
 - Tests contributed: min/max/average correctness and range consistency.
 - Challenges faced: invalid numeric values in scraped records.
 - Evidence links: See [docs/contributions/student_3.md](../docs/contributions/student_3.md); representative commits: `c940a18`, `ca43650`.
 
-### Student 4
+### IT22083296 - E.K.K.Tharushi Nethmini Edirisinghe
 - Agent developed: Report Generator Agent.
 - Tool implemented: report persistence and summary generation.
 - Tests contributed: output file generation and end-to-end checks.
