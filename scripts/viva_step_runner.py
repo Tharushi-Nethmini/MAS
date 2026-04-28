@@ -83,6 +83,20 @@ def _save_last_source_urls(urls: list[str]) -> None:
     _write_session_data(data)
 
 
+def _get_last_scraped_items() -> list[dict[str, Any]]:
+    data = _read_session_data()
+    items = data.get("last_scraped_items", [])
+    if isinstance(items, list):
+        return [item for item in items if isinstance(item, dict)]
+    return []
+
+
+def _save_last_scraped_items(items: list[dict[str, Any]]) -> None:
+    data = _read_session_data()
+    data["last_scraped_items"] = items
+    _write_session_data(data)
+
+
 def _select_source_urls_for_demo() -> tuple[list[str], bool]:
     """Return offline-only source mode for stable viva demos."""
     return [], True
@@ -122,7 +136,11 @@ def run_member_2(trace_id: str) -> None:
     }
     print("\n--- Member 2 Output (Web Scraper) ---")
     try:
-        print(json.dumps(research_agent(state), indent=2))
+        result = research_agent(state)
+        scraped = result.get("scraped_items", [])
+        if isinstance(scraped, list):
+            _save_last_scraped_items(scraped)
+        print(json.dumps(result, indent=2))
     finally:
         if force_offline:
             if prev_offline is None:
@@ -135,20 +153,28 @@ def run_member_3(trace_id: str) -> None:
     print(f"Trace ID (shared auto): {trace_id}")
     product_name = _input_default("Product name", "coconut")
 
-    use_default = _input_default("Use default sample prices? (yes/no)", "yes").lower()
-    if use_default in {"yes", "y"}:
-        scraped_items = [
-            {"store": "Glomark", "price": 120.0},
-            {"store": "Keells", "price": 135.5},
-            {"store": "Arpico", "price": 110.0},
-        ]
+    last_scraped_items = _get_last_scraped_items()
+    use_member_2_data = "yes"
+    if last_scraped_items:
+        use_member_2_data = _input_default("Use Member 2 scraped data? (yes/no)", "yes").lower()
+
+    if last_scraped_items and use_member_2_data in {"yes", "y"}:
+        scraped_items = last_scraped_items
     else:
-        scraped_items = []
-        count = int(_input_default("How many price entries", "3"))
-        for idx in range(1, count + 1):
-            store = _input_default(f"Entry {idx} store", f"Store{idx}")
-            price = float(_input_default(f"Entry {idx} price", "100"))
-            scraped_items.append({"store": store, "price": price})
+        use_default = _input_default("Use default sample prices? (yes/no)", "yes").lower()
+        if use_default in {"yes", "y"}:
+            scraped_items = [
+                {"store": "Glomark", "price": 120.0},
+                {"store": "Keells", "price": 135.5},
+                {"store": "Arpico", "price": 110.0},
+            ]
+        else:
+            scraped_items = []
+            count = int(_input_default("How many price entries", "3"))
+            for idx in range(1, count + 1):
+                store = _input_default(f"Entry {idx} store", f"Store{idx}")
+                price = float(_input_default(f"Entry {idx} price", "100"))
+                scraped_items.append({"store": store, "price": price})
 
     state = {
         "trace_id": trace_id,

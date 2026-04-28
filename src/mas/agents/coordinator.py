@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+import os
 from src.mas.config import is_offline_mode, settings
 from src.mas.agents.prompts import COORDINATOR_SYSTEM_PROMPT
 from src.mas.llm import ask_ollama
@@ -59,9 +61,18 @@ def coordinator_agent(state: MASState) -> MASState:
 
     # Prompt the user for URLs if none are provided
     if not source_urls:
-        print(f"Please enter URLs for '{product_name}' (comma-separated):")
-        url_input = input()
-        source_urls = [url.strip() for url in url_input.split(",") if url.strip()]
+        # Force offline mode for viva_step_runner.py demo runs
+        if (
+            is_offline_mode()
+            or "viva_step_runner.py" in sys.argv[0]
+            or "VIVA_STEP_RUNNER" in os.environ
+        ):
+            # In offline/demo mode, skip URL prompt and leave source_urls empty (dataset will be used)
+            pass
+        else:
+            print(f"Please enter URLs for '{product_name}' (comma-separated):")
+            url_input = input()
+            source_urls = [url.strip() for url in url_input.split(",") if url.strip()]
 
     log_event(
         trace_id,

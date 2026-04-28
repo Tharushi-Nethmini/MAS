@@ -5,6 +5,9 @@ import json
 import os
 import re
 from typing import Any
+
+# Import the CSV loader
+from src.mas.tools.csv_loader import load_product_prices_from_csv
 from urllib.parse import urlparse
 
 import requests
@@ -318,9 +321,23 @@ def scrape_prices(
             except Exception:
                 continue
 
-    # If online scraping failed or returned nothing, and offline_mode is True, use offline/demo data
+    # If online scraping failed or returned nothing, and offline_mode is True, use dataset if available
     if (not collected) and offline_mode:
-        for store, html in _offline_html_catalog(product_name, model=model):
-            collected.extend(extract_prices_from_html(store, html, product_name))
+        # Try to load from dataset CSV.
+        try:
+            dataset_items = load_product_prices_from_csv(
+                csv_path="data/data.csv",
+                products=[product_name] if product_name else None,
+                countries=None,
+                sample_size=10,  # You can adjust or make this configurable
+            )
+            collected.extend(dataset_items)
+        except Exception:
+            pass
+
+        # If dataset is empty or unavailable, fallback to deterministic offline HTML samples.
+        if not collected:
+            for store, html in _offline_html_catalog(product_name, model=model):
+                collected.extend(extract_prices_from_html(store, html, product_name))
 
     return sorted(collected, key=lambda x: (float(x["price"]), x["store"], x["title"]))
