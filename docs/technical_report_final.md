@@ -190,14 +190,37 @@ The system uses custom Python tools to ensure agents interact with the environme
 ### 4.0 Integration Flow Across Tools
 Tool calls are integrated as a strict chain aligned with agent responsibilities:
 
-1. Coordinator Agent uses local LLM helper for optional query refinement.
+1. Coordinator Agent uses query extraction and normalization utilities from src/mas/tools/query_tools.py, with local LLM refinement as optional enhancement.
 2. Web Scraper Agent invokes scraping/parsing utilities to build scraped_items.
 3. Price Analyzer Agent invokes numerical analysis utility to compute statistics.
 4. Report Generator Agent invokes file, PDF, and safe shell utilities for final artifacts.
 
 This explicit mapping ensures each agent uses at least one concrete tool and avoids a purely prompt-only implementation.
 
-### 4.1 Web Scraping Tool
+### 4.1 Coordinator Query Tool
+File: src/mas/tools/query_tools.py
+
+Representative signatures:
+```python
+def extract_product_name(text: str) -> str
+def normalize_product_query(product_name: str) -> str
+```
+
+Engineering decisions:
+- Keeps request parsing logic modular and testable outside the agent file.
+- Uses fallback behavior for empty or ambiguous requests.
+- Produces normalized query text for consistent downstream scraping.
+
+Example usage:
+```python
+product_name = extract_product_name("Compare prices for coconut")
+normalized = normalize_product_query(product_name)
+```
+
+Integration point:
+- Called by Coordinator Agent before optional local LLM refinement.
+
+### 4.2 Web Scraping Tool
 File: src/mas/tools/public_api.py
 
 Representative signatures:
@@ -220,7 +243,7 @@ items = scrape_prices(product_name="coconut", source_urls=[], offline_mode=True)
 Integration point:
 - Called by Web Scraper Agent to produce shared state field scraped_items.
 
-### 4.2 Price Analysis Tool
+### 4.3 Price Analysis Tool
 File: src/mas/tools/price_tools.py
 
 Representative signature:
@@ -245,7 +268,7 @@ summary = analyze_prices([
 Integration point:
 - Called by Price Analyzer Agent to fill best_price, best_store, min_price, max_price, and average_price.
 
-### 4.3 File Interaction Tool
+### 4.4 File Interaction Tool
 File: src/mas/tools/file_tools.py
 
 Representative signatures:
@@ -268,7 +291,7 @@ saved_path = save_markdown_file("reports/example.md", "# Report")
 Integration point:
 - Called by Report Generator Agent to persist markdown report output.
 
-### 4.4 PDF Generation Tool
+### 4.5 PDF Generation Tool
 File: src/mas/tools/pdf_tools.py
 
 Representative signature:
@@ -289,7 +312,7 @@ pdf_path = save_report_pdf("reports/example.pdf", "Price Report", report_text)
 Integration point:
 - Called by Report Generator Agent to produce submission-ready PDF output.
 
-### 4.5 Secure Shell Tool
+### 4.6 Secure Shell Tool
 File: src/mas/tools/shell_tools.py
 
 Representative signature:
@@ -421,35 +444,15 @@ Known failure risks and mitigations:
 - Mitigation: snapshot and replay support for deterministic verification.
 
 ## 8. Individual Contributions (Proof Section)
-Each student must provide concrete evidence with commit/PR links.
 
-### IT22125248 - Annesiyani Srikanthan
-- Agent developed: Coordinator Agent.
-- Tool implemented: Query normalization helper.
-- Tests contributed: request extraction and fallback behavior.
-- Challenges faced: ambiguous product requests.
-- Evidence links: See [docs/contributions/student_1.md](../docs/contributions/student_1.md); representative commits: `ca43650`, `c940a18`.
+Each student must provide concrete evidence with commit/PR links. The following table summarizes the agent, tool, and challenges for each student:
 
-### IT22099518 - Hemapriya H. A . N. S
-- Agent developed: Web Scraper Agent.
-- Tool implemented: scrape_prices and HTML extraction routines.
-- Tests contributed: offline extraction and malformed HTML handling.
-- Challenges faced: inconsistent source structures.
-- Evidence links: See [docs/contributions/student_2.md](../docs/contributions/student_2.md); representative commits: `87f7a84`, `ca43650`.
-
-### IT22167378 - H.I.G.Amith Hasintha
-- Agent developed: Price Analyzer Agent.
-- Tool implemented: analyze_prices.
-- Tests contributed: min/max/average correctness and range consistency.
-- Challenges faced: invalid numeric values in scraped records.
-- Evidence links: See [docs/contributions/student_3.md](../docs/contributions/student_3.md); representative commits: `c940a18`, `ca43650`.
-
-### IT22083296 - E.K.K.Tharushi Nethmini Edirisinghe
-- Agent developed: Report Generator Agent.
-- Tool implemented: report persistence and summary generation.
-- Tests contributed: output file generation and end-to-end checks.
-- Challenges faced: preserving complete context in final output.
-- Evidence links: See [docs/contributions/student_4.md](../docs/contributions/student_4.md); representative commits: `22a8d59`, `1ea4ff1`.
+| Student ID | Name | Agent Developed | Tool Implemented | Challenges Faced | Evidence Links |
+|---|---|---|---|---|---|
+| IT22125248 | Annesiyani Srikanthan | Coordinator Agent | [query_tools.py](../src/mas/tools/query_tools.py) <br> (Query normalization helper) | Ambiguous product requests | [student_1.md](../docs/contributions/student_1.md); Commits: `ca43650`, `c940a18` |
+| IT22099518 | Hemapriya H. A . N. S | Web Scraper Agent | [public_api.py](../src/mas/tools/public_api.py) <br> (scrape_prices, HTML extraction) | Inconsistent source structures | [student_2.md](../docs/contributions/student_2.md); Commits: `87f7a84`, `ca43650` |
+| IT22167378 | H.I.G.Amith Hasintha | Price Analyzer Agent | [price_tools.py](../src/mas/tools/price_tools.py) <br> (analyze_prices) | Invalid numeric values in scraped records | [student_3.md](../docs/contributions/student_3.md); Commits: `c940a18`, `ca43650` |
+| IT22083296 | E.K.K.Tharushi Nethmini Edirisinghe | Report Generator Agent | [file_tools.py](../src/mas/tools/file_tools.py) <br> (report persistence, summary generation) | Preserving complete context in final output | [student_4.md](../docs/contributions/student_4.md); Commits: `22a8d59`, `1ea4ff1` |
 
 ## 9. GitHub Repository Link
 Repository URL: https://github.com/Tharushi-Nethmini/MAS

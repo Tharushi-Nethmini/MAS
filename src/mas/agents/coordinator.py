@@ -1,32 +1,11 @@
 from __future__ import annotations
 
-import re
-
 from src.mas.config import is_offline_mode, settings
 from src.mas.agents.prompts import COORDINATOR_SYSTEM_PROMPT
 from src.mas.llm import ask_ollama
 from src.mas.observability.logger import log_event
 from src.mas.state import MASState
-
-
-def _extract_product_name(text: str) -> str:
-    """Infer product name from free-form user request."""
-
-    normalized = text.strip()
-    if not normalized:
-        return "coconut"
-
-    patterns = [
-        r"compare\s+prices\s+for\s+(.+)",
-        r"price\s+of\s+(.+)",
-        r"find\s+best\s+deal\s+for\s+(.+)",
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, normalized, flags=re.IGNORECASE)
-        if match:
-            return match.group(1).strip(" .,")
-
-    return normalized
+from src.mas.tools.query_tools import extract_product_name, normalize_product_query
 
 
 def coordinator_agent(state: MASState) -> MASState:
@@ -35,8 +14,8 @@ def coordinator_agent(state: MASState) -> MASState:
     trace_id = state["trace_id"]
     request = state.get("user_request", "")
 
-    product_name = _extract_product_name(request)
-    normalized_product_query = re.sub(r"\s+", " ", product_name).strip().lower()
+    product_name = extract_product_name(request)
+    normalized_product_query = normalize_product_query(product_name)
     source_urls: list[str] = state.get("source_urls", [])
 
     if not is_offline_mode():
