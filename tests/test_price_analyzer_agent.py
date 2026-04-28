@@ -39,3 +39,21 @@ def test_price_analyzer_agent_handles_invalid_items() -> None:
 
     assert result["best_store"] == "StoreC"
     assert result["best_price"] == 111.0
+
+
+def test_price_analyzer_agent_handles_all_invalid_prices() -> None:
+    state = {
+        "trace_id": "analysis-3",
+        "product_name": "coconut",
+        "scraped_items": [
+            {"store": "StoreA", "price": None},
+            {"store": "StoreB", "price": "bad"},
+            {"store": "StoreC", "price": 0},
+        ],
+    }
+
+    result = budget_agent(state)
+
+    assert result["best_store"] == "N/A"
+    assert result["best_price"] == 0.0
+    assert "failed" in result["analysis_summary"].lower()

@@ -29,6 +29,12 @@ The solution is designed to satisfy assignment constraints:
 - Agent tooling for environment interaction.
 - Traceability through structured observability.
 
+### 1.1 Local-Only and Ollama Compliance
+- LLM inference is executed locally through Ollama (default model: `llama3:8b`).
+- No paid cloud LLM API keys are required for execution.
+- The system supports fully offline deterministic mode (`MAS_OFFLINE_MODE=1`) for reproducible demos and tests.
+- All outputs (reports, traces, summaries) are generated and stored on local disk.
+
 ## 2. System Architecture
 The MAS architecture is implemented as a deterministic four-stage pipeline:
 1. Coordinator Agent

@@ -1,4 +1,4 @@
-# Student 1: Coordinator Agent - Tool Building & Testing
+﻿# Student 1: Coordinator Agent - Tool Building & Testing
 
 ## Agent Overview
 **Coordinator Agent** (`src/mas/agents/coordinator.py`) - Orchestrates the workflow initiation by extracting and normalizing the user's product query. Acts as the entry point of the multi-agent system.
@@ -36,9 +36,9 @@
 ```
 
 **Error Handling**:
-- Empty request → defaults to "coconut"
-- LLM failure → uses keyword-based fallback
-- Invalid regex match → applies keyword list
+- Empty request -> defaults to "coconut"
+- LLM failure -> uses keyword-based fallback
+- Invalid regex match -> applies keyword list
 
 ---
 
@@ -67,7 +67,7 @@
    - Validates: Fallback mechanism when request is malformed
 
 **Success Metrics**:
-- ✅ 2 passed in 0.04s
+- PASS 3 passed
 - Normalized query matches product name
 - Fallback activates for edge cases
 - source_urls preserved in output state
@@ -98,13 +98,13 @@ Coordinator behavior also validated in:
 
 ## Viva Talking Points
 1. **How does request normalization work?**  
-   → Uses regex patterns first, falls back to keyword list, then validates with LLM
+   -> Uses regex patterns first, falls back to keyword list, then validates with LLM
 
 2. **What happens if the user gives a vague request?**  
-   → System extracts best-match keyword and refines via LLM; if still ambiguous, uses "coconut" fallback
+   -> System extracts best-match keyword and refines via LLM; if still ambiguous, uses "coconut" fallback
 
 3. **Where is the extracted product name used?**  
-   → Passed to Web Scraper agent via `normalized_product_query` field to guide search
+   -> Passed to Web Scraper agent via `normalized_product_query` field to guide search
 
 4. **How do you test request normalization?**  
-   → Run: `pytest tests/test_coordinator_agent.py` → Validates extraction + fallback scenarios
+   -> Run: `pytest tests/test_coordinator_agent.py` -> Validates extraction, fallback, and normalization spacing/case edge scenarios

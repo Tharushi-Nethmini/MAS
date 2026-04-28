@@ -77,7 +77,7 @@ evaluation.py                        # Multi-scenario reliability checks
 **Test File**: `tests/test_web_scraper_agent.py`
 
 ### Tool Implementation
-- **Function**: `scrape_prices(product_name: str, trace_id: str, offline_mode: bool) -> list[dict]`
+- **Function**: `scrape_prices(product_name: str, source_urls: list[str] | None = None, offline_mode: bool = False, model: str | None = None) -> list[dict[str, Any]]`
 - **Purpose**: Collect product prices from multiple sources
 - **Features**:
   - Shopify endpoint detection
@@ -166,13 +166,13 @@ evaluation.py                        # Multi-scenario reliability checks
 
 #### Tool 2: PDF Report (`save_report_pdf`)
 - **Location**: `src/mas/tools/pdf_tools.py`
-- **Function**: `save_report_pdf(file_path: str, content: str) -> str`
+- **Function**: `save_report_pdf(path: str, title: str, content: str) -> str`
 - **Purpose**: Generate professional A4 PDF documents
 - **Features**: ReportLab formatting, header/table styling, content embedding
 
 #### Tool 3: Safe Shell (`run_safe_shell`)
 - **Location**: `src/mas/tools/shell_tools.py`
-- **Function**: `run_safe_shell(command: str, trace_id: str) -> str`
+- **Function**: `run_safe_shell(command: str) -> str`
 - **Purpose**: Execute only safe shell commands
 - **Allowlist**: Get-ChildItem, dir, pwd, Get-Date, Get-Location
 - **Blocks**: Dangerous commands (rm, del, curl, package managers)

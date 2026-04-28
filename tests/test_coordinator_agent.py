@@ -37,3 +37,19 @@ def test_coordinator_agent_uses_fallback_for_empty_request(monkeypatch) -> None:
 
     assert result["product_name"] == "coconut"
     assert result["normalized_product_query"] == "coconut"
+
+
+def test_coordinator_agent_normalizes_spacing_and_case(monkeypatch) -> None:
+    monkeypatch.setenv("MAS_OFFLINE_MODE", "1")
+    os.environ["MAS_OFFLINE_MODE"] = "1"
+
+    state = {
+        "trace_id": "coord-3",
+        "model": "llama3:8b",
+        "user_request": "   CoConut   Milk  ",
+    }
+
+    result = coordinator_agent(state)
+
+    assert result["product_name"] == "CoConut   Milk"
+    assert result["normalized_product_query"] == "coconut milk"

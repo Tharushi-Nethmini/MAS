@@ -1,4 +1,4 @@
-# Student 3: Price Analyzer Agent - Tool Building & Testing
+﻿# Student 3: Price Analyzer Agent - Tool Building & Testing
 
 ## Agent Overview
 **Price Analyzer Agent** (`src/mas/agents/budgeter.py`) - Performs statistical analysis on collected price data. Identifies best deals, computes price ranges, and generates insights.
@@ -10,7 +10,7 @@
 ### Primary Tool: Price Analysis (`analyze_prices`)
 
 **Location**: `src/mas/tools/price_tools.py`  
-**Function**: `analyze_prices(scraped_items: list[dict]) -> dict`
+**Function**: `analyze_prices(items: list[dict[str, Any]]) -> dict[str, Any]`
 
 **Tool Functionality**:
 1. **Data Validation**: Filters items with:
@@ -48,9 +48,9 @@ scraped_items=[
 ```
 
 **Validation Rules**:
-- `min_price ≤ max_price` (always true)
-- `min_price ≤ average_price ≤ max_price` (statistical consistency)
-- `sample_size ≥ 1` (at least one valid item)
+- `min_price <= max_price` (always true)
+- `min_price <= average_price <= max_price` (statistical consistency)
+- `sample_size >= 1` (at least one valid item)
 - `best_price == min_price` (best = cheapest)
 
 ---
@@ -76,9 +76,9 @@ scraped_items=[
      - best_price == 150
      - min_price == 150
      - max_price == 200
-     - average_price ≈ 175
+     - average_price ~= 175
 
-2. **test_budget_agent_filters_invalid_items** (PASS)
+2. **test_price_analyzer_agent_handles_invalid_items** (PASS)
    - Scenario: Mixed valid/invalid price data
    - Input items: StoreA=valid(111), StoreB=None, StoreC=valid(111), StoreD=0 (invalid)
    - Expected: Only StoreA and StoreC counted; StoreB and StoreD filtered
@@ -88,11 +88,16 @@ scraped_items=[
      - best_price == 111
      - average_price == 111
 
+3. **test_price_analyzer_agent_handles_all_invalid_prices** (PASS)
+   - Scenario: All records invalid (`None`, malformed string, zero)
+   - Expected: agent returns safe fallback (`best_store="N/A"`, `best_price=0.0`)
+   - Validates: secure fail-closed behavior for fully invalid inputs
+
 **Success Metrics**:
-- ✅ 2 passed in 0.08s
+- PASS 3 passed
 - Correct min/max detection
 - Invalid items filtered properly
-- Price ranges consistent (min ≤ avg ≤ max)
+- Price ranges consistent (min <= avg <= max)
 - Store attribution correct
 
 ### Shared Tool Tests
@@ -128,16 +133,16 @@ Analysis behavior also validated in:
 
 ## Viva Talking Points
 1. **How do you identify the best price?**  
-   → Find minimum price across all valid items, return associated store name
+   -> Find minimum price across all valid items, return associated store name
 
 2. **How do you handle invalid price data?**  
-   → Filter items with None, NaN, or ≤0 prices before computation
+   -> Filter items with None, NaN, or <=0 prices before computation
 
 3. **What validation do you apply to results?**  
-   → Ensure min ≤ average ≤ max; sample_size ≥ 1; all prices numeric
+   -> Ensure min <= average <= max; sample_size >= 1; all prices numeric
 
 4. **How do you test price analysis?**  
-   → Run: `pytest tests/test_price_analyzer_agent.py` → Validates best-price detection + filtering
+   -> Run: `pytest tests/test_price_analyzer_agent.py` -> Validates best-price detection + filtering
 
 5. **What if all prices are the same?**  
-   → All stats are identical; best_price = average_price; no concern
+   -> All stats are identical; best_price = average_price; no concern

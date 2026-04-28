@@ -2,6 +2,13 @@
 
 This project is a fully local, zero-cost Multi-Agent System for automated product price comparison.
 
+## Assignment Compliance (Local-Only + Ollama)
+
+- Runs fully on local machines.
+- Uses local SLM inference through Ollama (`llama3:8b` by default).
+- No paid cloud API keys are required (no OpenAI/Anthropic/Gemini runtime dependency).
+- Supports deterministic offline demo mode with `MAS_OFFLINE_MODE=1`.
+
 ## Problem Overview
 
 Manual price comparison across multiple online sources is repetitive and time-consuming.
@@ -97,6 +104,17 @@ cd "D:\SLIIT\Y4S2\CTSE\Assignment 2\MAS"
 python -m pip install -r requirements.txt
 ```
 
+## Copy-Paste Quick Start (Examiner)
+
+Run these commands exactly in PowerShell:
+
+```powershell
+cd "D:\SLIIT\Y4S2\CTSE\Assignment 2\MAS"
+& ".\.venv\Scripts\Activate.ps1"
+$env:MAS_OFFLINE_MODE="1"
+python -m src.mas.main --request "Compare prices for coconut" --model llama3:8b
+```
+
 ### Interpreter-Safe Mode (Recommended)
 
 To avoid `ModuleNotFoundError` due to wrong Python interpreter, use this variable in all commands:
@@ -150,6 +168,12 @@ Interpreter-safe equivalent:
 
 ```powershell
 & $py -m pytest -q
+```
+
+Run agent ownership tests only (student-by-student evidence):
+
+```powershell
+& $py -m pytest tests/test_coordinator_agent.py tests/test_web_scraper_agent.py tests/test_price_analyzer_agent.py tests/test_report_generator_agent.py -v
 ```
 
 Run multi-case evaluation:

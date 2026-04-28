@@ -1,4 +1,4 @@
-# Student 2: Web Scraper Agent - Tool Building & Testing
+﻿# Student 2: Web Scraper Agent - Tool Building & Testing
 
 ## Agent Overview
 **Web Scraper Agent** (`src/mas/agents/researcher.py`) - Collects product prices from multiple online sources. Orchestrates scraping tools and returns normalized price listings.
@@ -10,7 +10,7 @@
 ### Primary Tool: Price Scraper (`scrape_prices`)
 
 **Location**: `src/mas/tools/public_api.py`  
-**Function**: `scrape_prices(product_name: str, trace_id: str, offline_mode: bool) -> list[dict]`
+**Function**: `scrape_prices(product_name: str, source_urls: list[str] | None = None, offline_mode: bool = False, model: str | None = None) -> list[dict[str, Any]]`
 
 **Tool Functionality**:
 1. **Source Detection**: Identifies Shopify endpoints and standard e-commerce sites
@@ -26,8 +26,9 @@
 **Input Parameters**:
 ```python
 product_name="coconut",
-trace_id="demo_123",
-offline_mode=True  # Enables reproducible demo data
+source_urls=[],
+offline_mode=True,
+model="llama3:8b"
 ```
 
 **Output Data Structure**:
@@ -46,10 +47,10 @@ offline_mode=True  # Enables reproducible demo data
 ```
 
 **Error Handling**:
-- Network timeout (offline mode) → returns fallback profile
-- Invalid HTML → skips malformed entries
-- Missing price fields → filters out incomplete items
-- Currency mismatch → normalizes to detected currency
+- Network timeout (offline mode) -> returns fallback profile
+- Invalid HTML -> skips malformed entries
+- Missing price fields -> filters out incomplete items
+- Currency mismatch -> normalizes to detected currency
 
 ---
 
@@ -64,19 +65,24 @@ offline_mode=True  # Enables reproducible demo data
 
 **Test Cases**:
 
-1. **test_research_agent_returns_scraped_items** (PASS)
+1. **test_web_scraper_agent_collects_offline_items** (PASS)
    - Scenario: Offline mode enabled (MAS_OFFLINE_MODE=1)
    - Input: product_name="coconut"
-   - Expected: ≥3 scraped_items with valid prices (> 0)
+   - Expected: >=3 scraped_items with valid prices (> 0)
    - Validates: Scraper returns populated item list with correct structure
    - Checks:
-     - scraped_items.length ≥ 3
+     - scraped_items.length >= 3
      - Each item has "store", "title", "price" fields
      - price > 0 for all items
      - research_notes starts with "Collected"
 
+2. **test_web_scraper_agent_handles_unknown_product_in_offline_mode** (PASS)
+   - Scenario: Unknown product string in offline mode
+   - Expected: fallback/dataset still provides usable positive price records
+   - Validates: resilience when query has no direct product match
+
 **Success Metrics**:
-- ✅ 1 passed in 0.11s
+- PASS 2 passed
 - Minimum 3 price points collected
 - All prices are positive numbers
 - Store names populated
@@ -115,16 +121,16 @@ Scraping behavior also validated in:
 
 ## Viva Talking Points
 1. **How does the scraper handle different website structures?**  
-   → BeautifulSoup flexible selectors + regex price extraction handles variations
+   -> BeautifulSoup flexible selectors + regex price extraction handles variations
 
 2. **What happens if a website is down?**  
-   → Offline mode returns deterministic mock data; in production, skips unreachable sites
+   -> Offline mode returns deterministic mock data; in production, skips unreachable sites
 
 3. **How do you validate scraped prices?**  
-   → Check that price is numeric, > 0, and has valid currency; filter invalid entries
+   -> Check that price is numeric, > 0, and has valid currency; filter invalid entries
 
 4. **How many sources do you typically scrape?**  
-   → Minimum 3 sources per product for robust price comparison
+   -> Minimum 3 sources per product for robust price comparison
 
 5. **How do you test scraping without hitting live sites?**  
-   → Run with MAS_OFFLINE_MODE=1 to use deterministic mock data
+   -> Run with MAS_OFFLINE_MODE=1 to use deterministic offline data and fallback profiles

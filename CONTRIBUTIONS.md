@@ -1,6 +1,17 @@
-# Individual Contribution Tracker
+﻿# Individual Contribution Tracker
 
 Each student owns one agent, one custom tool suite, and one agent-specific test file. Evidence is recorded in docs/contributions/*.md.
+
+## Submission Proof Matrix
+
+This section is the direct proof required by the assignment:
+
+| Student | Agent Built | Custom Tool Built | Tests Contributed |
+|---|---|---|---|
+| Student 1 | `src/mas/agents/coordinator.py` | `src/mas/tools/query_tools.py` | `tests/test_coordinator_agent.py` |
+| Student 2 | `src/mas/agents/researcher.py` | `src/mas/tools/public_api.py` | `tests/test_web_scraper_agent.py` |
+| Student 3 | `src/mas/agents/budgeter.py` | `src/mas/tools/price_tools.py` | `tests/test_price_analyzer_agent.py` |
+| Student 4 | `src/mas/agents/risk_reporter.py` | `src/mas/tools/file_tools.py`, `src/mas/tools/pdf_tools.py`, `src/mas/tools/shell_tools.py` | `tests/test_report_generator_agent.py` |
 
 ---
 
@@ -8,7 +19,7 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
 
 **Agent**: `src/mas/agents/coordinator.py`  
 **Tool**: Request Normalization  
-**Test File**: `tests/test_coordinator_agent.py` (2 tests, ✅ 2 passed)
+**Test File**: `tests/test_coordinator_agent.py` (3 tests, PASS 3 passed)
 
 **Quick Run**:
 ```bash
@@ -32,7 +43,7 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
 **Agent**: `src/mas/agents/researcher.py`  
 **Tool**: Price Scraper (`scrape_prices`)  
 **Tool File**: `src/mas/tools/public_api.py`  
-**Test File**: `tests/test_web_scraper_agent.py` (1 test, ✅ 1 passed)
+**Test File**: `tests/test_web_scraper_agent.py` (2 tests, PASS 2 passed)
 
 **Quick Run**:
 ```bash
@@ -57,7 +68,7 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
 **Agent**: `src/mas/agents/budgeter.py`  
 **Tool**: Price Analysis (`analyze_prices`)  
 **Tool File**: `src/mas/tools/price_tools.py`  
-**Test File**: `tests/test_price_analyzer_agent.py` (2 tests, ✅ 2 passed)
+**Test File**: `tests/test_price_analyzer_agent.py` (3 tests, PASS 3 passed)
 
 **Quick Run**:
 ```bash
@@ -68,7 +79,7 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
 - Data validation and filtering (price > 0, valid numeric)
 - Best price detection (minimum across sources)
 - Statistical computation: min/max/average/sample_size
-- Range consistency validation: min ≤ avg ≤ max
+- Range consistency validation: min <= avg <= max
 - Output: best_store, best_price, min_price, max_price, average_price
 
 **Evidence**: [docs/contributions/student_3.md](docs/contributions/student_3.md)  
@@ -85,7 +96,7 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
   - PDF Report: `save_report_pdf` (src/mas/tools/pdf_tools.py)
   - Safe Shell: `run_safe_shell` (src/mas/tools/shell_tools.py)
 
-**Test File**: `tests/test_report_generator_agent.py` (1 test, ✅ 1 passed)
+**Test File**: `tests/test_report_generator_agent.py` (2 tests, PASS 2 passed)
 
 **Quick Run**:
 ```bash
@@ -109,15 +120,15 @@ Each student owns one agent, one custom tool suite, and one agent-specific test 
 ### Agent-Specific Tests
 | Student | Agent | Test File | Tests | Status |
 |---------|-------|-----------|-------|--------|
-| 1 | Coordinator | test_coordinator_agent.py | 2 | ✅ 2 passed |
-| 2 | Web Scraper | test_web_scraper_agent.py | 1 | ✅ 1 passed |
-| 3 | Price Analyzer | test_price_analyzer_agent.py | 2 | ✅ 2 passed |
-| 4 | Report Generator | test_report_generator_agent.py | 1 | ✅ 1 passed |
+| 1 | Coordinator | test_coordinator_agent.py | 3 | PASS 3 passed |
+| 2 | Web Scraper | test_web_scraper_agent.py | 2 | PASS 2 passed |
+| 3 | Price Analyzer | test_price_analyzer_agent.py | 3 | PASS 3 passed |
+| 4 | Report Generator | test_report_generator_agent.py | 2 | PASS 2 passed |
 
 ### Run All Agent Tests
 ```bash
 & ".\.venv\Scripts\python.exe" -m pytest tests/test_coordinator_agent.py tests/test_web_scraper_agent.py tests/test_price_analyzer_agent.py tests/test_report_generator_agent.py -v
-# Expected: 6 passed in ~1.70s
+# Expected: 10 passed
 ```
 
 ### Shared Testing

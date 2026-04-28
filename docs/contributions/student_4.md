@@ -1,4 +1,4 @@
-# Student 4: Report Generator Agent - Tool Building & Testing
+﻿# Student 4: Report Generator Agent - Tool Building & Testing
 
 ## Agent Overview
 **Report Generator Agent** (`src/mas/agents/risk_reporter.py`) - Transforms analysis results into human-readable reports. Generates Markdown documentation and PDF files with visualizations.
@@ -39,7 +39,7 @@ reports/price_report_demo_123.md (created)
 
 #### Tool 2: PDF Report (`save_report_pdf`)
 **Location**: `src/mas/tools/pdf_tools.py`  
-**Function**: `save_report_pdf(file_path: str, content: str) -> str`
+**Function**: `save_report_pdf(path: str, title: str, content: str) -> str`
 
 **Functionality**:
 1. **PDF Creation**: Uses ReportLab to render markdown content as A4 PDF
@@ -62,7 +62,7 @@ reports/price_report_demo_123.pdf (created)
 
 #### Tool 3: Shell Execution (`run_safe_shell`)
 **Location**: `src/mas/tools/shell_tools.py`  
-**Function**: `run_safe_shell(command: str, trace_id: str) -> str`
+**Function**: `run_safe_shell(command: str) -> str`
 
 **Functionality**:
 1. **Command Allowlisting**: Only allows safe commands (Get-ChildItem, dir, pwd, Get-Date, Get-Location)
@@ -119,7 +119,7 @@ Final report includes:
 
 **Test Cases**:
 
-1. **test_report_generator_agent_creates_files** (PASS)
+1. **test_report_generator_agent_writes_report_files** (PASS)
    - Scenario: Generate report with temporary directory
    - Input: Complete MASState with all analysis results
    - Expected: 
@@ -135,8 +135,13 @@ Final report includes:
      - PDF file size > 1000 bytes (valid PDF)
      - Shell snapshot captured in trace
 
+2. **test_report_generator_agent_handles_shell_tool_failure** (PASS)
+   - Scenario: shell tool raises runtime error
+   - Expected: report generation still completes and includes fallback shell error note
+   - Validates: graceful degradation and reliability under tool failure
+
 **Success Metrics**:
-- ✅ 1 passed in 0.15s
+- PASS 2 passed
 - Markdown file created
 - PDF file created
 - Report content contains all required sections
@@ -183,19 +188,19 @@ Get-ChildItem reports/ -Filter "price_report_*.pdf"
 
 ## Viva Talking Points
 1. **What information goes into the final report?**  
-   → Product name, best store, best price, price range, average price, full store comparison table
+   -> Product name, best store, best price, price range, average price, full store comparison table
 
 2. **How do you ensure Markdown and PDF stay synchronized?**  
-   → Single content source; generate both from same markdown template
+   -> Single content source; generate both from same markdown template
 
 3. **Why allowlist shell commands instead of blacklist?**  
-   → Allowlist is more secure—only explicitly safe commands allowed; blacklist can be bypassed
+   -> Allowlist is more secure-only explicitly safe commands allowed; blacklist can be bypassed
 
 4. **How do you handle file creation errors?**  
-   → Create parent dirs if missing; validate file exists post-write; return path or error
+   -> Create parent dirs if missing; validate file exists post-write; return path or error
 
 5. **How do you test report generation without manual inspection?**  
-   → Run: `pytest tests/test_report_generator_agent.py` → Validates file existence + content assertions
+   -> Run: `pytest tests/test_report_generator_agent.py` -> Validates file existence + content assertions
 
 6. **Where are reports saved?**  
-   → reports/ directory with naming: `price_report_{trace_id}.md` and `.pdf`
+   -> reports/ directory with naming: `price_report_{trace_id}.md` and `.pdf`
