@@ -298,30 +298,29 @@ def scrape_prices(
 
     collected: list[dict[str, Any]] = []
 
-    if offline_mode:
+    # Always try online scraping first if URLs are provided
+    if source_urls:
+        for url in source_urls:
+            try:
+                store_name, endpoint = _shopify_endpoint_from_url(url)
+                if endpoint:
+                    payload = _load_shopify_payload(endpoint)
+                    shopify_items = _extract_shopify_items(store_name, payload, product_name)
+                    if shopify_items:
+                        collected.extend(shopify_items)
+                        continue
+
+                response = requests.get(url, timeout=15)
+                response.raise_for_status()
+                html = response.text
+                store_name = store_name or url.split("//")[-1].split("/")[0]
+                collected.extend(extract_prices_from_html(store_name, html, product_name))
+            except Exception:
+                continue
+
+    # If online scraping failed or returned nothing, and offline_mode is True, use offline/demo data
+    if (not collected) and offline_mode:
         for store, html in _offline_html_catalog(product_name, model=model):
             collected.extend(extract_prices_from_html(store, html, product_name))
-        return collected
-
-    if not source_urls:
-        return collected
-
-    for url in source_urls:
-        try:
-            store_name, endpoint = _shopify_endpoint_from_url(url)
-            if endpoint:
-                payload = _load_shopify_payload(endpoint)
-                shopify_items = _extract_shopify_items(store_name, payload, product_name)
-                if shopify_items:
-                    collected.extend(shopify_items)
-                    continue
-
-            response = requests.get(url, timeout=15)
-            response.raise_for_status()
-            html = response.text
-            store_name = store_name or url.split("//")[-1].split("/")[0]
-            collected.extend(extract_prices_from_html(store_name, html, product_name))
-        except Exception:
-            continue
 
     return sorted(collected, key=lambda x: (float(x["price"]), x["store"], x["title"]))

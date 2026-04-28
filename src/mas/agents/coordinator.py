@@ -16,7 +16,26 @@ def coordinator_agent(state: MASState) -> MASState:
 
     product_name = extract_product_name(request)
     normalized_product_query = normalize_product_query(product_name)
+
+    # Automatically add default URLs for common products if none are provided
     source_urls: list[str] = state.get("source_urls", [])
+    if not source_urls:
+        # You can expand this dictionary for more products
+        default_urls = {
+            "soap": [
+                "https://www.keellssuper.com/product/soap",
+                "https://www.glomark.lk/soap",
+                "https://www.arpico.com/soap"
+            ],
+            "sugar": [
+                "https://www.keellssuper.com/product/sugar",
+                "https://www.glomark.lk/sugar",
+                "https://www.arpico.com/sugar"
+            ],
+            # Add more products and URLs as needed
+        }
+        # Use normalized product query to select URLs
+        source_urls = default_urls.get(normalized_product_query, [])
 
     if not is_offline_mode():
         try:
@@ -37,6 +56,12 @@ def coordinator_agent(state: MASState) -> MASState:
                     "action": "using extracted product query fallback",
                 },
             )
+
+    # Prompt the user for URLs if none are provided
+    if not source_urls:
+        print(f"Please enter URLs for '{product_name}' (comma-separated):")
+        url_input = input()
+        source_urls = [url.strip() for url in url_input.split(",") if url.strip()]
 
     log_event(
         trace_id,
