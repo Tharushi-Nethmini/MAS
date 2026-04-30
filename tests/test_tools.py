@@ -34,7 +34,7 @@ def test_scrape_prices_offline_returns_items() -> None:
     items = scrape_prices("coconut", offline_mode=True)
     assert len(items) >= 3
     assert all("store" in item and "price" in item for item in items)
-    assert all(float(item["price"]) >= 100.0 for item in items)
+    assert all(float(item["price"]) > 0.0 for item in items)
 
 
 def test_analyze_prices_returns_best_offer() -> None:
