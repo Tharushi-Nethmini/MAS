@@ -11,7 +11,7 @@ def budget_agent(state: MASState) -> MASState:
 
     trace_id = state["trace_id"]
     product_name = state.get("product_name", "product")
-    items = state.get("scraped_items", [])
+    items = state.get("validated_items", state.get("scraped_items", []))
 
     try:
         analysis = analyze_prices(items)

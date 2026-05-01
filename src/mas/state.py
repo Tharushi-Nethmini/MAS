@@ -13,12 +13,16 @@ class MASState(TypedDict, total=False):
     normalized_product_query: str
     source_urls: list[str]
     scraped_items: list[dict[str, Any]]
+    validated_items: list[dict[str, Any]]
+    validation_notes: str
     analysis_summary: str
     best_price: float
     best_store: str
     min_price: float
     max_price: float
     average_price: float
+    recommendation_summary: str
+    recommendation_options: list[dict[str, Any]]
     report_notes: str
     final_report: str
     saved_report_path: str

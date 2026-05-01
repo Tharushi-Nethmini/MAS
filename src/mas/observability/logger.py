@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from src.mas.config import settings
+from ..config import settings
 
 
 def log_event(trace_id: str, event_type: str, payload: dict[str, Any]) -> None:

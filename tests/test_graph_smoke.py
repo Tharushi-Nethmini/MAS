@@ -22,5 +22,7 @@ def test_graph_smoke_runs_end_to_end(monkeypatch) -> None:
     assert "product_name" in result
     assert "best_store" in result
     assert "best_price" in result
+    assert "validated_items" in result
+    assert "recommendation_summary" in result
     assert "final_report" in result
     assert "saved_report_path" in result

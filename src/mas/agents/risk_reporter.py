@@ -40,11 +40,26 @@ def risk_and_report_agent(state: MASState) -> MASState:
     )
 
     scraped_items = state.get("scraped_items", [])
+    validated_items = state.get("validated_items", [])
+    recommendation_options = state.get("recommendation_options", [])
     lines = [
         f"- {entry.get('store', 'unknown')}: {entry.get('price', 'N/A')} {entry.get('currency', '')}".strip()
         for entry in scraped_items
     ]
     item_list = "\n".join(lines) if lines else "- No items scraped"
+    validated_lines = [
+        f"- {entry.get('store', 'unknown')}: {entry.get('price', 'N/A')} {entry.get('currency', '')}".strip()
+        for entry in validated_items
+    ]
+    validated_list = "\n".join(validated_lines) if validated_lines else "- No validated items"
+    recommendation_lines = [
+        (
+            f"- {option.get('category', 'N/A')}: {option.get('store', 'N/A')} at "
+            f"{option.get('price', 'N/A')} LKR ({option.get('reason', 'N/A')})"
+        )
+        for option in recommendation_options
+    ]
+    recommendation_list = "\n".join(recommendation_lines) if recommendation_lines else "- No recommendations"
 
     report = "\n".join(
         [
@@ -63,6 +78,10 @@ def risk_and_report_agent(state: MASState) -> MASState:
             state.get("research_notes", "N/A"),
             item_list,
             "",
+            "## Data Validation Output",
+            state.get("validation_notes", "N/A"),
+            validated_list,
+            "",
             "## Price Analyzer Output",
             state.get("analysis_summary", "N/A"),
             f"Best Store: {state.get('best_store', 'N/A')}",
@@ -70,6 +89,10 @@ def risk_and_report_agent(state: MASState) -> MASState:
             f"Minimum Price: {state.get('min_price', 'N/A')} LKR",
             f"Maximum Price: {state.get('max_price', 'N/A')} LKR",
             f"Average Price: {state.get('average_price', 'N/A')} LKR",
+            "",
+            "## Recommendation Explanation Output",
+            state.get("recommendation_summary", "N/A"),
+            recommendation_list,
             "",
             "## Report Generator Notes",
             report_notes,
