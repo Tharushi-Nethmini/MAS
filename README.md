@@ -188,6 +188,30 @@ Interpreter-safe equivalent:
 & $py evaluation.py
 ```
 
+## Web Frontend (New)
+
+A browser UI is available for running the full MAS pipeline and browsing recent run summaries.
+
+### Start Frontend
+
+```powershell
+cd "D:\SLIIT\Y4S2\CTSE\Assignment 2\MAS"
+& ".\.venv\Scripts\Activate.ps1"
+python -m pip install -r requirements.txt
+python src/frontend_app.py
+```
+
+Then open:
+
+- http://127.0.0.1:5000
+
+### Frontend Features
+
+1. Run full pipeline (`Member 4` equivalent) from browser.
+2. View latest best store and best price summary.
+3. Open generated Markdown/PDF reports directly.
+4. Browse recent summary history from `logs/summary_*.json`.
+
 ## One-by-One Viva Commands (Per Member)
 
 Set once:
