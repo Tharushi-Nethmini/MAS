@@ -37,6 +37,11 @@ def test_scrape_prices_offline_returns_items() -> None:
     assert all(float(item["price"]) > 0.0 for item in items)
 
 
+def test_scrape_prices_offline_returns_empty_for_unknown_product() -> None:
+    items = scrape_prices("product-that-does-not-exist-xyz", offline_mode=True)
+    assert items == []
+
+
 def test_analyze_prices_returns_best_offer() -> None:
     summary = analyze_prices(
         [

@@ -335,9 +335,4 @@ def scrape_prices(
         except Exception:
             pass
 
-        # If dataset is empty or unavailable, fallback to deterministic offline HTML samples.
-        if not collected:
-            for store, html in _offline_html_catalog(product_name, model=model):
-                collected.extend(extract_prices_from_html(store, html, product_name))
-
     return sorted(collected, key=lambda x: (float(x["price"]), x["store"], x["title"]))

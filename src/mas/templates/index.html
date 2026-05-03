@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAS Price Comparison</title>
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Local multi-agent system</p>
+        <h1>MAS Price Comparison</h1>
+      </div>
+      <div class="runtime-pill">
+        <span class="status-dot"></span>
+        <span>{{ "Offline mode" if offline_mode else "Live mode" }}</span>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <form id="compare-form" class="control-panel" autocomplete="off">
+        <div class="panel-header">
+          <h2>Agent Run</h2>
+          <span id="agent-badge">Full Pipeline</span>
+        </div>
+
+        <label class="field">
+          <span>Agent member</span>
+          <select id="member" name="member">
+            <option value="4">4 - Full Pipeline</option>
+            <option value="1">1 - Coordinator Agent</option>
+            <option value="2">2 - Web Scraper Agent</option>
+            <option value="3">3 - Price Analyzer Agent</option>
+            <option value="5">5 - Offer Validator Agent</option>
+            <option value="6">6 - Trend Analyzer Agent</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Request / product</span>
+          <input type="text" id="product_name" name="product_name" placeholder="Compare prices for coconut" />
+        </label>
+
+        <label id="source-urls-label" class="field">
+          <span>Source URLs</span>
+          <input type="text" id="source_urls" name="source_urls" placeholder="https://example.com/product" />
+        </label>
+
+        <label id="model-label" class="field">
+          <span>Model</span>
+          <input type="text" id="model" name="model" value="{{ default_model }}" />
+        </label>
+
+        <label id="scraped-items-label" class="field hidden">
+          <span>Scraped items JSON</span>
+          <textarea id="scraped_items" name="scraped_items" rows="8" placeholder="Paste scraped JSON"></textarea>
+        </label>
+
+        <label id="best-price-label" class="field hidden">
+          <span>Current best price</span>
+          <input type="number" id="best_price" name="best_price" step="0.01" placeholder="Enter price" />
+        </label>
+
+        <label id="use-scraped-label" class="switch-row hidden">
+          <input type="checkbox" id="use_scraped" name="use_scraped" checked />
+          <span class="switch-track" aria-hidden="true"></span>
+          <span>Use scraped items</span>
+        </label>
+
+        <div class="actions">
+          <button type="submit" id="run-button">Run Agent</button>
+          <button type="button" id="clear-button" class="secondary-button">Clear</button>
+        </div>
+      </form>
+
+      <section class="output-panel" aria-live="polite">
+        <div class="panel-header">
+          <h2>Output</h2>
+          <span id="trace-pill">No trace</span>
+        </div>
+
+        <div id="empty-state" class="empty-state">
+          <h3>Ready</h3>
+          <p>Select an agent and run the comparison.</p>
+        </div>
+
+        <div id="status" class="notice hidden"></div>
+
+        <div id="summary" class="summary-grid hidden"></div>
+
+        <div id="reports" class="report-links hidden"></div>
+
+        <details id="raw-result" class="raw-result hidden" open>
+          <summary>Raw JSON</summary>
+          <pre id="result-json"></pre>
+        </details>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("compare-form");
+    const status = document.getElementById("status");
+    const resultJson = document.getElementById("result-json");
+    const rawResult = document.getElementById("raw-result");
+    const summary = document.getElementById("summary");
+    const reports = document.getElementById("reports");
+    const emptyState = document.getElementById("empty-state");
+    const memberSelect = document.getElementById("member");
+    const sourceUrlsLabel = document.getElementById("source-urls-label");
+    const modelLabel = document.getElementById("model-label");
+    const scrapedItemsLabel = document.getElementById("scraped-items-label");
+    const bestPriceLabel = document.getElementById("best-price-label");
+    const productNameInput = document.getElementById("product_name");
+    const useScrapedLabel = document.getElementById("use-scraped-label");
+    const useScrapedCheckbox = document.getElementById("use_scraped");
+    const scrapedItemsInput = document.getElementById("scraped_items");
+    const agentBadge = document.getElementById("agent-badge");
+    const tracePill = document.getElementById("trace-pill");
+    const runButton = document.getElementById("run-button");
+    const clearButton = document.getElementById("clear-button");
+
+    const agentNames = {
+      "1": "Coordinator",
+      "2": "Web Scraper",
+      "3": "Price Analyzer",
+      "4": "Full Pipeline",
+      "5": "Offer Validator",
+      "6": "Trend Analyzer",
+    };
+
+    window.localStorage.removeItem("mas_last_scraped_items");
+
+    function setHidden(element, hidden) {
+      element.classList.toggle("hidden", hidden);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatPrice(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) {
+        return null;
+      }
+      return `LKR ${number.toFixed(2)}`;
+    }
+
+    function metricCard(label, value) {
+      if (value === undefined || value === null || value === "") {
+        return "";
+      }
+      return `
+        <div class="metric">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+        </div>
+      `;
+    }
+
+    function renderSummary(result) {
+      const cards = [
+        metricCard("Best store", result.best_store),
+        metricCard("Best price", formatPrice(result.best_price)),
+        metricCard("Minimum", formatPrice(result.min_price)),
+        metricCard("Maximum", formatPrice(result.max_price)),
+        metricCard("Average", formatPrice(result.average_price)),
+        metricCard("Trend", result.trend_direction),
+        metricCard("Trend change", result.trend_change !== undefined ? `${result.trend_change}%` : ""),
+        metricCard("History count", result.trend_history_count),
+        metricCard("Quality score", result.price_quality_score),
+      ].join("");
+
+      summary.innerHTML = cards;
+      setHidden(summary, !cards.trim());
+    }
+
+    function renderReports(data) {
+      const links = [
+        data.report_path ? `<p><span>Markdown report</span><strong>${escapeHtml(data.report_path)}</strong></p>` : "",
+        data.report_pdf_path ? `<p><span>PDF report</span><strong>${escapeHtml(data.report_pdf_path)}</strong></p>` : "",
+      ].join("");
+
+      reports.innerHTML = links;
+      setHidden(reports, !links.trim());
+    }
+
+    function setStatus(message, type = "info") {
+      status.textContent = message;
+      status.dataset.type = type;
+      setHidden(status, false);
+    }
+
+    function updateFormFields() {
+      const member = memberSelect.value;
+      const showSourceUrls = member === "2" || member === "4";
+      const showModel = member === "1" || member === "2" || member === "4";
+      const showScrapedItems = member === "3" || member === "5" || member === "6";
+      const showBestPrice = member === "6";
+      const showUseScraped = member === "6";
+
+      setHidden(sourceUrlsLabel, !showSourceUrls);
+      setHidden(modelLabel, !showModel);
+      setHidden(scrapedItemsLabel, !showScrapedItems || (showUseScraped && !useScrapedCheckbox.checked));
+      setHidden(bestPriceLabel, !showBestPrice);
+      setHidden(useScrapedLabel, !showUseScraped);
+
+      agentBadge.textContent = agentNames[member];
+      productNameInput.placeholder = member === "1" || member === "4" ? "Compare prices for coconut" : "coconut";
+    }
+
+    memberSelect.addEventListener("change", updateFormFields);
+    useScrapedCheckbox.addEventListener("change", updateFormFields);
+    updateFormFields();
+
+    clearButton.addEventListener("click", () => {
+      form.reset();
+      scrapedItemsInput.value = "";
+      window.localStorage.removeItem("mas_last_scraped_items");
+      tracePill.textContent = "No trace";
+      setHidden(status, true);
+      setHidden(summary, true);
+      setHidden(reports, true);
+      setHidden(rawResult, true);
+      setHidden(emptyState, false);
+      updateFormFields();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setHidden(emptyState, true);
+      setHidden(summary, true);
+      setHidden(reports, true);
+      setHidden(rawResult, true);
+      setStatus("Running selected agent...", "loading");
+      runButton.disabled = true;
+
+      const payload = {
+        member: memberSelect.value,
+        product_name: productNameInput.value,
+        source_urls: document.getElementById("source_urls").value,
+        model: document.getElementById("model").value,
+        scraped_items: scrapedItemsInput.value,
+        best_price: document.getElementById("best_price").value,
+        use_scraped: useScrapedCheckbox.checked,
+      };
+
+      try {
+        const response = await fetch("/api/member", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Unexpected error");
+        }
+
+        if (Array.isArray(data.result.scraped_items) && data.result.scraped_items.length > 0) {
+          const scrapedJson = JSON.stringify(data.result.scraped_items, null, 2);
+          scrapedItemsInput.value = scrapedJson;
+        }
+
+        tracePill.textContent = data.trace_id;
+        setStatus(`${agentNames[payload.member]} completed`, "success");
+        renderSummary(data.result);
+        renderReports(data);
+        resultJson.textContent = JSON.stringify(data.result, null, 2);
+        setHidden(rawResult, false);
+      } catch (error) {
+        tracePill.textContent = "No trace";
+        setStatus(error.message, "error");
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -45,11 +45,17 @@ def research_agent(state: MASState) -> MASState:
             },
         )
 
-    if not scraped_items and not offline_mode and not source_urls:
-        research_notes = (
-            "No source URLs provided in online mode. "
-            f"Collected 0 price entries for '{product_name}'."
-        )
+    product_available = bool(scraped_items)
+    if not scraped_items:
+        if offline_mode:
+            research_notes = f"No available products found for '{product_name}' in the dataset."
+        elif not source_urls:
+            research_notes = (
+                "No source URLs provided in online mode. "
+                f"No available products found for '{product_name}'."
+            )
+        else:
+            research_notes = f"No available products found for '{product_name}' from the provided sources."
     else:
         research_notes = f"Collected {len(scraped_items)} price entries for '{product_name}'."
 
@@ -60,7 +66,12 @@ def research_agent(state: MASState) -> MASState:
             "agent": "WebScraperAgent",
             "system_prompt": WEB_SCRAPER_SYSTEM_PROMPT,
             "scraped_item_count": len(scraped_items),
+            "product_available": product_available,
             "research_notes": research_notes,
         },
     )
-    return {"scraped_items": scraped_items, "research_notes": research_notes}
+    return {
+        "scraped_items": scraped_items,
+        "product_available": product_available,
+        "research_notes": research_notes,
+    }

@@ -37,5 +37,6 @@ def test_web_scraper_agent_handles_unknown_product_in_offline_mode(monkeypatch) 
 
     result = research_agent(state)
 
-    assert result["scraped_items"]
-    assert all(float(item["price"]) > 0 for item in result["scraped_items"])
+    assert result["scraped_items"] == []
+    assert result["product_available"] is False
+    assert "No available products found" in result["research_notes"]

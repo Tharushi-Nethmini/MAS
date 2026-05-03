@@ -66,3 +66,27 @@ def test_report_generator_agent_handles_shell_tool_failure(monkeypatch, tmp_path
     assert Path(result["saved_report_path"]).exists()
     assert Path(result["saved_report_pdf_path"]).exists()
     assert "Shell tool failed" in result["report_notes"]
+
+
+def test_report_generator_agent_reports_no_available_products(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(risk_reporter, "settings", SimpleNamespace(reports_dir=str(tmp_path)))
+    monkeypatch.setattr(risk_reporter, "run_safe_shell", lambda command: "Tue Apr 22 12:00:00 2026")
+
+    state = {
+        "trace_id": "report-empty",
+        "user_request": "Compare prices for unknown product",
+        "product_name": "unknown product",
+        "scraped_items": [],
+        "validated_items": [],
+        "analysis_summary": "No available products found for 'unknown product'. Price analysis was skipped.",
+        "best_store": "N/A",
+        "best_price": 0.0,
+        "min_price": 0.0,
+        "max_price": 0.0,
+        "average_price": 0.0,
+    }
+
+    result = risk_reporter.risk_and_report_agent(state)
+
+    assert "No available products found for 'unknown product'" in result["final_report"]
+    assert "No available products found in the dataset" in result["final_report"]

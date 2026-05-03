@@ -39,12 +39,17 @@ def risk_and_report_agent(state: MASState) -> MASState:
         f"Runtime snapshot: {shell_snapshot}."
     )
 
-    scraped_items = state.get("scraped_items", [])
+    validated_items = state.get("validated_items", state.get("scraped_items", []))
+    product_available = bool(validated_items)
     lines = [
-        f"- {entry.get('store', 'unknown')}: {entry.get('price', 'N/A')} {entry.get('currency', '')}".strip()
-        for entry in scraped_items
+        f"- {entry.get('store', 'unknown')}: {entry.get('price', 'N/A')} {entry.get('currency', '')} "
+        f"[{entry.get('category', 'Uncategorized')}]".strip()
+        for entry in validated_items
     ]
-    item_list = "\n".join(lines) if lines else "- No items scraped"
+    item_list = "\n".join(lines) if lines else f"- No available products found for '{product}'"
+    quality_score = state.get("price_quality_score", "N/A")
+    offer_risk_notes = state.get("offer_risk_notes", "No validation notes available.")
+    planning_notes = state.get("planning_notes", "No source planning notes available.")
 
     report = "\n".join(
         [
@@ -55,13 +60,16 @@ def risk_and_report_agent(state: MASState) -> MASState:
             "## User Request",
             state.get("user_request", "N/A"),
             "",
-            "## Coordinator Output",
-            f"Product: {product}",
-            f"Normalized Query: {state.get('normalized_product_query', 'N/A')}",
+            "## Source Planning Output",
+            planning_notes,
             "",
             "## Web Scraper Output",
             state.get("research_notes", "N/A"),
             item_list,
+            "",
+            "## Offer Validation",
+            f"Quality Score: {quality_score}%",
+            offer_risk_notes,
             "",
             "## Price Analyzer Output",
             state.get("analysis_summary", "N/A"),
@@ -71,11 +79,22 @@ def risk_and_report_agent(state: MASState) -> MASState:
             f"Maximum Price: {state.get('max_price', 'N/A')} LKR",
             f"Average Price: {state.get('average_price', 'N/A')} LKR",
             "",
+            "## Trend Analysis Output",
+            f"Trend direction: {state.get('trend_direction', 'N/A')}",
+            f"Trend change: {state.get('trend_change', 'N/A')}%",
+            f"Historical average: {state.get('trend_history_average', 'N/A')} LKR",
+            f"Trend recommendation: {state.get('trend_recommendation', 'N/A')}",
+            state.get('trend_summary', 'N/A'),
+            "",
             "## Report Generator Notes",
             report_notes,
             "",
             "## Conclusion",
-            "Best available offer identified from collected data. Re-check before purchase.",
+            (
+                "Best available offer identified from collected data. Re-check before purchase."
+                if product_available
+                else "No available products found in the dataset for this request."
+            ),
         ]
     )
 

@@ -16,7 +16,9 @@ SESSION_FILE = PROJECT_ROOT / "logs" / "viva_session.json"
 
 from src.mas.agents.budgeter import budget_agent
 from src.mas.agents.coordinator import coordinator_agent
+from src.mas.agents.offer_validator import offer_validator_agent
 from src.mas.agents.researcher import research_agent
+from src.mas.agents.trend_analyzer import trend_analyzer_agent
 from src.mas.config import is_offline_mode
 from src.mas.graph import build_graph
 from src.mas.observability.logger import log_event, write_run_summary
@@ -185,6 +187,78 @@ def run_member_3(trace_id: str) -> None:
     print(json.dumps(budget_agent(state), indent=2))
 
 
+def run_member_5(trace_id: str) -> None:
+    print(f"Trace ID (shared auto): {trace_id}")
+    product_name = _input_default("Product name", "coconut")
+
+    last_scraped_items = _get_last_scraped_items()
+    use_member_2_data = "yes"
+    if last_scraped_items:
+        use_member_2_data = _input_default("Use Member 2 scraped data? (yes/no)", "yes").lower()
+
+    if last_scraped_items and use_member_2_data in {"yes", "y"}:
+        scraped_items = last_scraped_items
+    else:
+        use_default = _input_default("Use default sample prices? (yes/no)", "yes").lower()
+        if use_default in {"yes", "y"}:
+            scraped_items = [
+                {"store": "Glomark", "title": product_name, "price": 120.0, "currency": "LKR"},
+                {"store": "Keells", "title": product_name, "price": 135.5, "currency": "LKR"},
+                {"store": "Arpico", "title": product_name, "price": 110.0, "currency": "LKR"},
+            ]
+        else:
+            scraped_items = []
+            count = int(_input_default("How many price entries", "3"))
+            for idx in range(1, count + 1):
+                store = _input_default(f"Entry {idx} store", f"Store{idx}")
+                price = float(_input_default(f"Entry {idx} price", "100"))
+                scraped_items.append({"store": store, "title": product_name, "price": price, "currency": "LKR"})
+
+    state = {
+        "trace_id": trace_id,
+        "scraped_items": scraped_items,
+    }
+    print("\n--- Member 5 Output (Offer Validator) ---")
+    print(json.dumps(offer_validator_agent(state), indent=2))
+
+
+def run_member_6(trace_id: str) -> None:
+    print(f"Trace ID (shared auto): {trace_id}")
+    product_name = _input_default("Product name", "coconut")
+
+    last_scraped_items = _get_last_scraped_items()
+    use_member_2_data = "yes"
+    if last_scraped_items:
+        use_member_2_data = _input_default("Use Member 2 scraped data? (yes/no)", "yes").lower()
+
+    if last_scraped_items and use_member_2_data in {"yes", "y"}:
+        best_price = min(
+            item.get("price", 0.0)
+            for item in last_scraped_items
+            if isinstance(item.get("price", 0), (int, float))
+        )
+    else:
+        use_default = _input_default("Use default sample prices? (yes/no)", "yes").lower()
+        if use_default in {"yes", "y"}:
+            sample_prices = [120.0, 135.5, 110.0]
+        else:
+            sample_prices = []
+            count = int(_input_default("How many price entries", "3"))
+            for idx in range(1, count + 1):
+                sample_prices.append(float(_input_default(f"Entry {idx} price", "100")))
+
+        best_price = min(sample_prices) if sample_prices else 0.0
+
+    state = {
+        "trace_id": trace_id,
+        "product_name": product_name,
+        "best_price": best_price,
+    }
+
+    print("\n--- Member 6 Output (Trend Analyzer) ---")
+    print(json.dumps(trend_analyzer_agent(state), indent=2))
+
+
 def run_member_4(trace_id: str) -> None:
     model = "llama3:8b"
     print(f"Trace ID (shared auto): {trace_id}")
@@ -255,7 +329,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Interactive step-by-step runner for viva member demos")
     parser.add_argument(
         "--member",
-        choices=["1", "2", "3", "4"],
+        choices=["1", "2", "3", "4", "5", "6"],
         help="Member number to run directly. If omitted, menu is shown.",
     )
     parser.add_argument(
@@ -272,7 +346,9 @@ def main() -> None:
         print("2. Web Scraper Agent")
         print("3. Price Analyzer Agent")
         print("4. Full Pipeline (Report Generator Demo)")
-        member = input("Enter member number (1/2/3/4): ").strip()
+        print("5. Offer Validator Agent")
+        print("6. Trend Analyzer Agent")
+        member = input("Enter member number (1/2/3/4/5/6): ").strip()
 
     reset_trace = args.new_trace or member == "1"
     shared_trace_id = _get_or_create_shared_trace_id(reset=reset_trace)
@@ -285,8 +361,12 @@ def main() -> None:
         run_member_3(shared_trace_id)
     elif member == "4":
         run_member_4(shared_trace_id)
+    elif member == "5":
+        run_member_5(shared_trace_id)
+    elif member == "6":
+        run_member_6(shared_trace_id)
     else:
-        raise ValueError("Invalid member selection. Use 1, 2, 3, or 4.")
+        raise ValueError("Invalid member selection. Use 1, 2, 3, 4, 5, or 6.")
 
 
 if __name__ == "__main__":
